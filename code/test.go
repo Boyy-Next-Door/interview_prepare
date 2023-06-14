@@ -1,11 +1,67 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"reflect"
+)
 
 func main() {
 	// testChan()
-	testNewMake()
+	// testNewMake()
+	testReflect()
 }
+
+type  Animal interface {
+	Say()
+	Eat()
+}
+
+type Dog struct {
+	Name string `myTag:"wuhu~"`
+}
+type Cat struct {
+}
+
+func (d Dog) Say() {
+	fmt.Println("汪汪汪")
+}
+
+func (d Dog) Eat() {
+	fmt.Println("吃骨头")
+}
+
+func (c Cat) Say() {
+	fmt.Println("喵喵喵")
+}
+
+func (c Cat) Eat() {
+	fmt.Println("吃小虾子")
+}
+
+func testReflect() {
+	someAnimal := Dog{}
+	handle(someAnimal)
+}
+
+func handle(animal Animal) {
+	// 如果是狗  就让它叫
+	// 如果是猫  就让它吃
+
+	val := reflect.ValueOf(animal)
+	typ := reflect.TypeOf(animal)
+
+	nameOfType := typ.Name()
+	switch nameOfType {
+	case "Cat" :{
+		break;
+	}
+	case "Dog" :{
+		break
+	}
+	}
+}
+
+
 
 func testChan() {
 	ch := make(chan string)
