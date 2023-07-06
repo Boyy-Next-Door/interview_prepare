@@ -118,11 +118,12 @@ rune 等同于 int32,常用来处理 unicode 或 utf-8 字符
 - 反引号指的是字符串字面量，不支持任何转义序列（可以比较舒服地换行）。
 
 # 内存模型
-
+# 协程模型
+GMP模型
 # 并发模型
-
+CSP模型   Communicating Sequential Process
 # 垃圾回收
-
+https://blog.csdn.net/Dong_chongwu/article/details/128710443
 # 常用包
 
 # 数据结构原理
@@ -153,7 +154,8 @@ slice 是引用类型，传入的指针会指向函数外 slice 底层的数组�
 
 2. 循环是有序的吗？
 
-- 是无序的，for range map 在开始处理循环逻辑的时候就会做随机播种，避免顺序遍历
+- 是无序的，for range map 在开始处理循环逻辑的时候就会做随机播种，避免顺序遍历。
+- 从底层结构来看，hmap在发生扩容时，原来bucket中的值会搬迁到新的bucket中去，而for range map的原理就是遍历底层的bucket链表数组，如此看来对它的遍历注定是乱序的。
 
 3. map 中删除一个 key，它的内存会释放吗？
 
@@ -171,14 +173,20 @@ slice 是引用类型，传入的指针会指向函数外 slice 底层的数组�
 
 5. 底层数据结构是什么？ 怎么扩容的？
 
-- 底层是 hash table，用链表来解决冲突，这里说的 table 是一个 bucket 数组，每一个 bucket 都是一个 bmap 链表，一个 bmap 可以放 8 个 kv
+- 底层是 hash table，用链表来解决冲突，这里说的 table 是一个 bucket 数组，每一个 bucket 底层都是一个 bmap ，一个 bmap 可以放 8 个 kv（key连续存放、val连续存放，更高效利用内存）。
+- 当一个bucket中元素存满了之后，bucket会有一个指针指向下一个溢出桶，构成类似于一个bucket链表的结构。
+- 整个hmap的结构体中会有一个变量B，表示map底层正维护着2^B个bucket，他们全是正式桶；当B > 4时，hmap会认为很有可能会使用到溢出桶，于是会预先分配2^(B-4)个溢出桶，它们在内存上与正式桶是连续的。
+- hmap底层是通过计算负载因子来进行扩容的，即map所存元素数量 / bucket数量，阈值默认为6.5，当执行完一次写操作后该负载因子超过阈值，则会翻倍扩容；如果负载因子没有超过阈值，但是hmap中已使用的溢出桶超过一定数量（当B <= 15, 溢出桶数量大于2^B;当B> 15， 溢出桶数量大于2^15），就会触发等量扩容。
+- 翻倍扩容的过程是渐进式的，每一次写操作触发扩容后，至多只会迁移两个bucket中的数据到新桶，这样做可以避免扩容瞬间对整个map读写性能的抖动影响。
+- 等量扩容触发是因为hmap在写过程中，一边写一边删，导致每个bucket中的bmap非常稀疏（即8个坑位没占满），等量扩容可以对这些数据进行规整，提高内存利用率和读写的效率。
+
 
 # 一些核心概念
 
 - select
   golang 中的 IO 多路复用机制，主要针对多个 chan 同时读取的场景：
 
-  - 每个 case 里智能处理一个 channel，要么读要么写
+  - 每个 case 里只能处理一个 channel，要么读要么写
 
   - 多个 case 的执行顺序是随机的
 
@@ -208,3 +216,8 @@ slice 是引用类型，传入的指针会指向函数外 slice 底层的数组�
   - 有缓冲的
   - 无缓冲的
 - gin.Context
+
+# 性能排查/调优
+https://blog.csdn.net/m0_46251547/article/details/126242661
+
+https://blog.csdn.net/luduoyuan/article/details/128721103?spm=1001.2101.3001.6650.1&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-128721103-blog-126242661.235%5Ev38%5Epc_relevant_sort_base3&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7ECTRLIST%7ERate-1-128721103-blog-126242661.235%5Ev38%5Epc_relevant_sort_base3&utm_relevant_index=2
