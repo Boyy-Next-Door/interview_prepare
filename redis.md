@@ -386,6 +386,18 @@
 
 - stream
 
+    这是redis5.0以后新增的数据结构，可以用它来实现一个非常轻量级的消息队列，它支持消息的持久化、消费者组、消费确认等机制。
+
+    实体概念：
+
+    stream --- 可以理解为topic。
+
+    group --- 消费者组，一个group里可以有多个consumer。对同一个stream的不同group之间相互独立，各自读取消息的进度互不影响。
+
+    consumer --- 一个group里可以有多个consumer，组内的consumer只能互斥地消费group里的消息（在block模式下，应该有负载均衡算法来分配消息）。
+
+    redis指令：
+    - 
 
 - geospatial
 
