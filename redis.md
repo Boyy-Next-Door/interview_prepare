@@ -397,9 +397,59 @@
     consumer --- 一个group里可以有多个consumer，组内的consumer只能互斥地消费group里的消息（在block模式下，应该有负载均衡算法来分配消息）。
 
     redis指令：
-    - 
+    - XADD key [NOMKSTREAM] [MAXLEN|MINID [=|~] threshold [LIMIT count]] *|ID field value [field value ...] 创建stream
+        - [NOMKSTREAM] - 当key不存在时，不要自动创建这个stream  
+        - [MAXLEN] - 指定topic里能存储的最多消息数，默认不限制。
+        - [MINID] - 指定插入时的最小id，如果本次要插入数据的id小于该值，则插入不成功。（消息id默认分为 时间戳-毫秒内消息序号 两部分，比较大小时分开比较，当id中没有-时，会认为时间戳部分数值为0）
+        - [LIMIT count] - 限制stream的元素数量不超过count，如果本次xadd会导致元素数量超过，则会将队列头部的元素踢出去。
 
+    - XGROUP CREATE key groupName [start]   创建消费者组
+        - [start] 有几种形式 
+            - ① 0-0  表示从头开始消费 (其实语义是从大于0-0这个id开始的消息开始消费)
+            - ② $ 表示从stream的下一条消息开始消费（忽略掉此时stream里已经有的所有消息） 
+            - ③ 具体某一个消息id 表示从该消息之后的第一条消息开始消费
+
+    - XREADGROUP GROUP groupName consumerName COUNT n [BLOCK milliseconds] [NOACK] STREAMS key [start] 从消费者组中消费
+        - 这里的consumerName会自动创建对应的消费者，具体的消费者管理操作是XGROUP CREATECONSUMER / DELCONSUMER
+        - BLOCK可以指定阻塞式读取，milliseconds为0时表示永久阻塞等待
+        - NOACK **注意** 这里的NOACK指的是「不用手动ACK」，即自动ACK，默认不声明NOACK时是需要手动ACK的
+        - [start] 有几种形式
+            - ① >  表示读取本消费者组中下一个可以消费的消息 
+            - ② 0-0 表示读取本消费者组的pending列表里，第一个消息开始消费
+            - ③ 具体某一个消息id 表示从pending列表里该消息之后的第一条消息开始消费
+        > （注意 只有>才能读到最新的消息  指定消息id时只会从pending列表里返回）
+    - XACK key groupName messageId  
+    
+        消费者组消息确认，会将该消息从该consumer的pending列表移除，此后该消费者组中的消费者就无法再读取这条消息了。
+
+    - XPENDING key groupName start end count [consumer] 
+
+        查看消费者组（或某个具体消费者）的pending列表
+        
+        常用参数:  XPENDING key groupName  - + count [consumer]  查看所有的pending消息
 - geospatial
+
+    这是redis内部用于存储经纬度的数据结构，它能够支持基于一个经纬坐标或者一个地点元素的范围查找（圆形区域）。
+
+    redis的geospatial的底层其实就是一个zset，其中的score是元素经纬度的geohash值（撮合之后的bit转成整数）。
+
+    geohash的思想大致如下：
+    
+    将整个地球平铺开，对经度进行二分，如果当前元素的经度位于左边则编码为0，否则编码为1；之后对于它所在的那半边继续二分，重复以上过程，就可以得到经度的一连串二进制编码，由它可以确定一个唯一的经度，而随着geohash的长度增长，这个精确值与当前元素的经度就会越接近（geohash为8位时，误差可以缩小到20米以内）。
+
+    维度编码的计算与精度编码几乎一样。
+
+    得到经纬编码之后，将它们撮合在一起：经度占偶数位，维度占奇数位，最后的结果经过base32编码就得到最终的geohash值。公共前缀越长的两个geohash，它们在物理上的距离就越近
+
+    常用命令：
+
+    - GEOADD key [NX|XX] [CH] longitude latitude member   添加元素  其中member相当于zset中的value
+    - GEODIST key member1 member2 [m|km|ft|mi] 计算两个地点的距离 可以指定单位
+    - GEOPOS key member  查询一个地点的经纬度
+    - GEORADIUS key longitude latitude radiusValue m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count] [ASC|DESC] 查询指定经纬度的指定圆形范围内的元素，可以选择性地返回其经纬度、距离、geohash值，还可以指定根据距离升序/降序排序。
+    - GEORADIUSBYMEMBER key member radius m|km|ft|mi [WITHCOORD] [WITHDIST] [WITHHASH] [COUNT count [ANY]] [ASC|DESC] 查询指定元素指定圆形范围内的元素（会返回它自己）
+
+    可以用作距离计算、附近的人、POI推荐等等功能。
 
 # 内存清除策略
 redis是一个基于内存的k-v数据库，它的持久化策略更偏向于用于数据的恢复，而不是像innodb那样用于检索，于是当redis进程所分配的内存空间不够用时，它不能将一部分数据持久化到磁盘以腾出内存空间，所以需要引入内存清除策略。
@@ -424,9 +474,19 @@ redis中的策略完整有八种：
 # key过期策略
 redis中的key通过时间戳的方式实现过期，对过期key的删除采用的是定时随机检测和惰性删除。
 
-惰性删除指的是，当读取一个key的时候，redis会检查其过期时间与当前系统的时间戳，如果过期则删除它。
+惰性删除指的是，当读取一个key的时候，redis会检查其过期时间与当前系统的时间戳，如果过期则删除它。注意这里的读取指的不仅仅是get操作，其他的诸如setnx也会先检查key是否存在或是否过期。
 
-定时随机检测
+定期随机检测指的是，redis每隔一段时间就在库中的设置了过期时间的key里随机抽取一部分，如果他们过期则删除。如果一轮检查下来发现过期key的比例超过一定数值，就会重复该过程，直到过期率下降或者本次检查时间达到上限才停止。
+
+另外，过期key对RDB和AOF的影响：
+
+ - 当RDB发生时，会检查key是否过期，如果过期则不会写入RDB文件中。
+ - 当从RDB恢复数据到内存时，也会检查key是否过期，过期的不会加载。
+
+ - 当AOF发生时，那些已经过期了但还没被从内存中删除的key没有被访问，是不会被写入aof文件的；
+ - 如果在AOF发生前这段时间，redis将过期key从内存里删除了，则会往AOF里写一个del操作，于是通过AOF恢复内存数据时这个过期key就会被删掉。
+ - AOF发生重写时（bgrewrite），那些过期了的key则不会写入aof文件，以此对aof文件进行优化压缩。
+ 
 # 持久化策略
 
 # 主从同步原理
@@ -448,6 +508,8 @@ redis中的key通过时间戳的方式实现过期，对过期key的删除采用
 1. 业务低谷时间阻塞删除 （不可靠）
 2. 渐进式删除，首先将key
 3. unlink
+
+# 与memcached的优劣
 
 LSM tree  https://zhuanlan.zhihu.com/p/181498475  
 bitcask: 简洁且能快速写入的存储系统模型 https://zhuanlan.zhihu.com/p/551334186
