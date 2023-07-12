@@ -33,7 +33,7 @@
     - 非常轻量级，消息头只有固定2个字节，适用于带宽和处理能力有限的嵌入式设备上，广泛应用于物联网中。
 
 ## 基本概念
-  ![kafka集群架构](kafka_cluster.png)
+  ![kafka集群架构](images/kafka_cluster.png)
 - Brocker 消息代理
 - Topic主题
 - Partition分区

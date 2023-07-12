@@ -16,21 +16,150 @@ func TestSolve(t *testing.T) {
 	// head := &ListNode{
 	// 	Val: 1,
 	// 	Next: &ListNode{
-	// 		Val: 2,
-	// 		Next: nil,
-	// 		// &ListNode{
-	// 		// 	Val: 3, 
-	// 		// 	Next: &ListNode{
-	// 		// 		Val: 4,
-	// 		// 		Next: nil,
-	// 		// 	},
-	// 		// },
+	// 		Val: 5,
+	// 		Next: &ListNode{
+	// 			Val: 8, 
+	// 			Next: &ListNode{
+	// 				Val: 9,
+	// 				Next: nil,
+	// 			},
+	// 		},
 	// 	},
 	// }
+
+	// head2 := &ListNode{
+	// 	Val: 3,
+	// 	Next: &ListNode{
+	// 		Val: 4,
+	// 		Next: &ListNode{
+	// 			Val: 7, 
+	// 			Next: &ListNode{
+	// 				Val: 10,
+	// 				Next: nil,
+	// 			},
+	// 		},
+	// 	},
+	// }
+
 	// removeNthFromEnd(head, 1)
-	isValid("[][]({[]})")
+	// isValid("[][]({[]})")
+	// mergeTwoLists(head, head2)
+	// generateParenthesis(4)
+
 	// fmt.Println(ret)
 }
+
+
+
+func quickSort(arr *[]int, p1, p2 int) {
+	if p2 - p1 == 1 {
+		if arr[p1] > arr[p2] {
+			
+		}
+	}
+}
+
+
+
+/**
+ * Definition for singly-linked list.
+ * type ListNode struct {
+ *     Val int
+ *     Next *ListNode
+ * }
+ */
+ func swapPairs(head *ListNode) *ListNode {
+	if head == nil || head.Next == nil{
+		return head
+	}
+
+	newHead := head.Next
+	curr := head
+	pre := &ListNode{
+	}
+	for curr != nil{
+		next := curr.Next
+
+		if next != nil {
+			curr.Next = next.Next
+			pre.Next = next
+			next.Next = curr
+
+			pre = curr
+			curr = curr.Next
+		} else {
+			// 有一个节点单出来了  啥也不用干
+			return newHead
+		}
+	}
+
+	return newHead
+ }
+
+func generateParenthesis(n int) []string {
+	stack := []string{"("}
+	ret := []string{}
+	handle(stack, n - 1, "(", &ret)
+	return ret
+}
+
+func handle(stack []string, n int, curr string, ret *[]string) {
+	if n == 0 {
+		for i := 0; i < len(stack); i ++ {
+			curr += ")"
+		}
+		(*ret) = append((*ret), curr)
+		return
+	} else {
+		// 当前还有左括号可以加入stack
+		// pop一个(
+		if len(stack) > 0 {
+			handle(stack[0:len(stack)-1], n, curr + ")", ret)
+		}
+		// push一个(
+		stack = append(stack, "(")
+		handle(stack, n - 1, curr + "(", ret)
+	}
+}
+/**
+ * Definition for singly-linked list.
+ * type ListNode struct {
+ *     Val int
+ *     Next *ListNode
+ * }
+ */
+ func mergeTwoLists(list1 *ListNode, list2 *ListNode) *ListNode {
+	if list1 == nil {
+		return list2
+	}
+	if list2 == nil {
+		return list1 
+	}
+	ret := &ListNode{
+		Next: nil,
+	}
+	head := ret
+
+	for list1 != nil && list2 != nil {
+		if list1.Val < list2.Val {
+			ret.Next = list1
+			list1 = list1.Next
+		} else {
+			ret.Next = list2
+			list2 = list2.Next
+		}
+		ret = ret.Next
+	}
+
+	if list1 != nil {
+		ret.Next = list1
+	} else if list2 != nil {
+		ret.Next = list2
+	}
+
+
+	return head.Next
+ }
 
 func isValid(s string) bool {
 	if len(s) % 2 == 1 || len(s) == 0 {
