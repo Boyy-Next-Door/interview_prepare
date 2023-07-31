@@ -442,7 +442,7 @@
   - XREADGROUP GROUP groupName consumerName COUNT n [BLOCK milliseconds] [NOACK] STREAMS key [start] 从消费者组中消费
     - 这里的 consumerName 会自动创建对应的消费者，具体的消费者管理操作是 XGROUP CREATECONSUMER / DELCONSUMER
     - BLOCK 可以指定阻塞式读取，milliseconds 为 0 时表示永久阻塞等待
-    - NOACK **注意** 这里的 NOACK 指的是「不用手动 ACK」，即自动 ACK，默认不声明 NOACK 时是需要手动 ACK 的
+    - NOACK **注意** 这里的 NOACK 指的是「不用手动 ACK」，即自动 ACK，默认不声明 NOACK 时是需要手动 ACK 的，注意仅在使用>读取最新消息时NOACK才会生效，如果是用0-0或具体id去读pending列表里的消息，NOACK是没用的。
     - [start] 有几种形式 - ① > 表示读取本消费者组中下一个可以消费的消息 - ② 0-0 表示读取本消费者组的 pending 列表里，第一个消息开始消费 - ③ 具体某一个消息 id 表示从 pending 列表里该消息之后的第一条消息开始消费
       > （注意 只有>才能读到最新的消息 指定消息 id 时只会从 pending 列表里返回）
   - XACK key groupName messageId

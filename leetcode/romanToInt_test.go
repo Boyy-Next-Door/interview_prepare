@@ -51,12 +51,37 @@ func TestSolve(t *testing.T) {
 
 
 
-func quickSort(arr *[]int, p1, p2 int) {
-	if p2 - p1 == 1 {
-		if arr[p1] > arr[p2] {
-			
+func quickSort(arr []int, p1, p2 int) {
+	if p1 >= p2 {
+		return
+	}
+
+	// 选择第一个元素作为pivot
+	pivot := arr[p1]
+
+	// 两个指针  从p1  p2 分别往中间找
+	l, r := p1, p2
+
+	for l < r {
+		// r 找比pivot小的
+		for arr[r] >= pivot && r > l{
+			r -= 1
+		}
+		
+		// l 找比pivot大的
+		for arr[l] <= pivot && l < r {
+			l += 1
+		}
+
+		// 交换
+		if l < r {
+			arr[l], arr[r] = arr[r], arr[l]
 		}
 	}
+
+	arr[p1], arr[l] = arr[l], arr[p1]
+	quickSort(arr, p1, l - 1)
+	quickSort(arr, l + 1, p2)
 }
 
 
