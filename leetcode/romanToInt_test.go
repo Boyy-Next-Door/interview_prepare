@@ -54,131 +54,9 @@ func TestSolve(t *testing.T) {
 
 	// fmt.Println(divide(4, 1))
 
-	fmt.Println(findSubstring("barfoofoobarthefoobarman", []string{"foo","bar","the"}))
+	// fmt.Println(findSubstring("barfoofoobarthefoobarman", []string{"foo","bar","the"}))
+
 } 
-
-func findSubstring(s string, words []string) []int {
-    // 可以对s做分词  得到的word数组的连续子串 可能是words的串联子串
-
-
-    wordLen := len(words[0])
-    maxIdx := len(s) - wordLen * len(words)
-    ret := []int{}
-    for i := 0; i <= maxIdx; i ++ {
-        dict := genDict(s, words)
-
-        cnt, exist := dict[s[i:i + wordLen]]
-        if exist {
-            // 接着往后找
-            dict[s[i:i + wordLen]] = cnt - 1
-
-            targetWordCount := len(words) - 1
-            success := true
-            for j := 1; j <= targetWordCount; j ++ {
-                cnt, exist = dict[s[i + j * wordLen:i + (j + 1) * wordLen]]
-
-                if !exist || cnt < 1{
-                    success = false
-                    break
-                } else {
-					dict[s[i + j * wordLen:i + (j + 1) * wordLen]] = cnt - 1
-                }
-            }
-
-            if success {
-                ret = append(ret, i)
-            }
-        }
-    }
-
-    return ret
-}
-
-func genDict(s string, words []string) map[string]int {
-    dict := make(map[string]int) 
-    for i := range words {
-        cnt, exist := dict[words[i]]
-        if exist {
-            dict[words[i]] = cnt + 1
-        } else {
-            dict[words[i]] = 1
-        }
-    }
-    return dict
-}
-
-func getSignal(a, b int) int {
-    if a * b > 0 {
-        return 1
-    } else {
-        return -1
-    }
-}
-func divide(dividend int, divisor int) int {
-    
-    sig := getSignal(dividend, divisor)
-
-    a := abs(dividend)
-    b := abs(divisor)
-
-    // 先让b 不断翻倍来逼近a 
-    times := 1 
-	ret := 0
-    for a > b {
-        times <<= 1
-        b <<= 1
-    }
-
-    // if a < b {
-    //     if times == 1 {
-	// 		ret = 0
-	// 	} else {
-	// 		ret = times >> 1 + solve(a - b >> 1, abs(divisor))
-	// 	}
-    // } else {
-	// 	// a == b
-	// 	ret = times
-	// }
-
-	ret = solve(a, b)
-
-	ret *= sig
-
-	if ret > 2147483647 {
-        return 2147483647
-    }
-
-    if ret < -2147483648 {
-        return -2147483648
-    }
-
-func quickSort(arr []int, p1, p2 int) {
-	if p1 >= p2 {
-		return
-	}
-
-	// 选择第一个元素作为pivot
-	pivot := arr[p1]
-
-	// 两个指针  从p1  p2 分别往中间找
-	l, r := p1, p2
-
-	for l < r {
-		// r 找比pivot小的
-		for arr[r] >= pivot && r > l{
-			r -= 1
-		}
-		
-		// l 找比pivot大的
-		for arr[l] <= pivot && l < r {
-			l += 1
-		}
-
-		// 交换
-		if l < r {
-			arr[l], arr[r] = arr[r], arr[l]
-	return ret
-}
 
 func solve(dividend, divisor int) int {
     if dividend < divisor {
@@ -202,28 +80,6 @@ func solve(dividend, divisor int) int {
 	return times
 }
 
-
-
-
-func mergeKLists(lists []*ListNode) *ListNode {
-
-	head := &ListNode{
-		Next: nil,
-	}
-
-	curr := head
-	var success = false
-	for {
-		success, curr = choose(lists, curr)
-		if !success {
-			return head.Next
-		}
-	}
-
-	arr[p1], arr[l] = arr[l], arr[p1]
-	quickSort(arr, p1, l - 1)
-	quickSort(arr, l + 1, p2)
-}
 
 func choose(lists []*ListNode, curr *ListNode) (bool, *ListNode) {
 	var minValNode *ListNode = nil
