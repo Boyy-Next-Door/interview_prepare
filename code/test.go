@@ -3,16 +3,69 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"time"
 )
 
 func main() {
 	// testChan()
 	// testNewMake()
 	// testReflect()
-	result := isMatch("aa","a*")
-	fmt.Println(result)
+	// result := isMatch("aa","a*")
+	// fmt.Println(result)
+	testChan3()
 }
 
+func testChan3() {
+	ch := make(chan int, 1)
+	ch <- 1
+
+	// for val := range ch {
+	// 	fmt.Println(val)
+	// 	if val == 5 {
+	// 		close(ch)
+	// 	} else {
+	// 		ch <- val + 1
+	// 	}
+	// }
+
+	for {
+		select {
+			case val, ok := <- ch: {
+				if !ok {
+					fmt.Println("结束")
+					goto finish
+				} else {
+					fmt.Println(val)
+					if val < 5 {
+						ch <- val + 1
+					} else {
+						close(ch)
+					}
+				}
+			}
+		}
+	}
+
+	finish:
+	fmt.Println("结束2")
+}
+
+func testChan2() {
+	ch1 := make(chan int, 10)
+	ticker := time.NewTicker(1000 * time.Second)
+
+
+	for {
+		select {
+			case val := <- ch1:{
+				fmt.Println(val)
+			}
+			case <- ticker.C: {
+				ch1 <- 666
+			}
+		}
+	}
+}
 
 func isMatch(s string, p string) bool {
 	// dp[i][j] ---  s的前i个字符 能否匹配p的前j个字符
