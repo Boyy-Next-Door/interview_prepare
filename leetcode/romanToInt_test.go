@@ -5,58 +5,7 @@ import (
 	"testing"
 )
 
-func TestSolve(t *testing.T) {
-	// ret := romanToInt("MCMXCIV")
-	// ret := longestCommonPrefix([]string{"fl1232123123ower","fl123123123ow","fl123123123ight"})
-	// ret  := threeSum([]int {-1,0,1,2,-1,-4,-2,-3,3,0,4})
-	// threeSumClosest([]int {0,0,0}, 1)
-	// letterCombinations("23")
-	// fourSum([]int{1,0,-1,0,-2,2}, 0)
-	// removeNthFromEnd([]int{1,0,-1,0,-2,2}, 0)
-	// head := &ListNode{
-	// 	Val: 1,
-	// 	Next: &ListNode{
-	// 		Val: 5,
-	// 		Next: &ListNode{
-	// 			Val: 8, 
-	// 			Next: &ListNode{
-	// 				Val: 9,
-	// 				Next: nil,
-	// 			},
-	// 		},
-	// 	},
-	// }
 
-	// head2 := &ListNode{
-	// 	Val: 3,
-	// 	Next: &ListNode{
-	// 		Val: 4,
-	// 		Next: &ListNode{
-	// 			Val: 7, 
-	// 			Next: &ListNode{
-	// 				Val: 10,
-	// 				Next: nil,
-	// 			},
-	// 		},
-	// 	},
-	// }
-
-	// removeNthFromEnd(head, 1)
-	// isValid("[][]({[]})")
-	// mergeTwoLists(head, head2)
-	// generateParenthesis(4)
-
-	// fmt.Println(ret)
-
-	// mergeKLists([]*ListNode{
-	// 	head, head2,
-	// })
-
-	// fmt.Println(divide(4, 1))
-
-	// fmt.Println(findSubstring("barfoofoobarthefoobarman", []string{"foo","bar","the"}))
-
-} 
 
 func solve(dividend, divisor int) int {
     if dividend < divisor {
@@ -79,6 +28,9 @@ func solve(dividend, divisor int) int {
     } 
 	return times
 }
+
+
+
 
 
 func choose(lists []*ListNode, curr *ListNode) (bool, *ListNode) {

@@ -147,14 +147,6 @@
 
     - listpack
       ![listpack](images/listpack.png)
-
-    listpack 也是优化 ziplist 后的一种数据结构，它的整体结构与 ziplist 类似，关键在于调整了 entry 内的结构，依次维护
-
-    encoding --- 不同的编码会占 1~5 个字节不等，可以理解为前几个 bit 位用来枚举编码，剩下的比特位用于存储 content 中内容的长度
-
-    data listpack
-
-    slen --- 指的是当前字节对于本 entry 起始地址的偏移量，也是 encoding + content 的总字节长度
     listpack 也是优化 ziplist 后的一种数据结构，它的整体结构与 ziplist 类似，关键在于调整了 entry 内的结构，依次维护
 
         encoding --- 不同的编码会占1~5个字节不等，可以理解为前几个bit位用来枚举编码，剩下的比特位用于存储content中内容的长度
